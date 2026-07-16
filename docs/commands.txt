@@ -1,0 +1,8 @@
+Then edit .env and fill in:
+
+CONTROL_PLANE_DATABASE_URL — your new Neon project's connection string
+CONTROL_PLANE_ENCRYPTION_KEY — generate it:
+
+powershell  uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+PLATFORM_ADMIN_JWT_SECRET — any long random string (e.g. uv run python -c "import secrets; print(secrets.token_urlsafe(32))")

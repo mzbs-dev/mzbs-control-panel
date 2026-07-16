@@ -62,10 +62,9 @@ app.add_middleware(
     max_age=3600,
 )
 
-# Router registration — added once control_plane/router.py exists
-# (Phase 2, Day 3 and Phase 2.5, Day 1):
-# from control_plane.router import platform_router
-# app.include_router(platform_router)
+# Router registration
+from control_plane.router import platform_router  # noqa: E402
+app.include_router(platform_router)
 
 
 @app.get("/", tags=["mzbs-control-panel"])
