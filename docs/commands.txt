@@ -6,3 +6,16 @@ CONTROL_PLANE_ENCRYPTION_KEY — generate it:
 powershell  uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
 PLATFORM_ADMIN_JWT_SECRET — any long random string (e.g. uv run python -c "import secrets; print(secrets.token_urlsafe(32))")
+____________________________________________________________________________________________________________
+uv run python migrations/seed_first_tenant.py           # one-time, prompts for details
+uv run python migrations/verify_phase2_checklist.py      # safe to re-run anytime, self-cleaning
+______________________________________________________________________________________________________
+$env:SEED_TENANT_ID="mzbs_staging_school"
+$env:SEED_SCHOOL_NAME="MZBS Staging School"
+$env:SEED_CONTACT_EMAIL="admin@example.com"
+$env:SEED_ADMIN_EMAIL="admin@example.com"
+$env:SEED_FRONTEND_URL="https://mzbs-staging-school.netlify.app"
+$env:SEED_RAW_CONNECTION_STRING="postgresql://user:pass@ep-xxxx.neon.tech/mzbs_staging_school"
+$env:SEED_SUBSCRIPTION_PLAN="standard"
+
+uv run python migrations/seed_first_tenant.py

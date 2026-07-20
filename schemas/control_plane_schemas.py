@@ -13,7 +13,6 @@ from pydantic import BaseModel, EmailStr, field_validator
 
 from control_plane.models import TenantStatus, SignupStatus
 
-
 # ---------- Tenant ----------
 
 class TenantCreate(BaseModel):
@@ -41,7 +40,6 @@ class TenantCreate(BaseModel):
             raise ValueError("tenant_id must be alphanumeric (with optional _ or -)")
         return v.lower()
 
-
 class TenantResponse(BaseModel):
     """NEVER add db_connection_secret to this model."""
     id: int
@@ -67,26 +65,48 @@ class TenantResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class TenantStatusUpdate(BaseModel):
     status: TenantStatus
-
 
 class TenantSubscriptionUpdate(BaseModel):
     subscription_plan: Optional[str] = None
     subscription_expiry: Optional[date] = None
 
+class TenantUpdate(BaseModel):
+    """Phase 5 — generic tenant info edit. Every field optional: only
+    fields actually provided get updated, everything else is left as-is.
+
+    Deliberately excludes tenant_id (immutable identifier) and status
+    (has its own dedicated PATCH .../status flow with cache-invalidation
+    semantics already tested).
+
+    raw_connection_string IS included here, for credential rotation.
+    When provided, it's re-encrypted and replaces db_connection_secret;
+    the tenant's cached connection (in both mzbs-control-panel and
+    mzbs's mirrored cache) must be invalidated so the new credential
+    takes effect immediately rather than after the cache TTL expires.
+    """
+    school_name: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    logo_url: Optional[str] = None
+    contact_email: Optional[EmailStr] = None
+    contact_phone: Optional[str] = None
+    admin_name: Optional[str] = None
+    admin_email: Optional[EmailStr] = None
+    frontend_url: Optional[str] = None
+    backend_url: Optional[str] = None
+    raw_connection_string: Optional[str] = None
 
 # ---------- Feature flags ----------
 
 class FeatureFlagUpdate(BaseModel):
     enabled: bool
 
-
 class FeatureFlagResponse(BaseModel):
     module: str
     enabled: bool
-
 
 # ---------- Platform admin auth ----------
 
@@ -94,11 +114,9 @@ class PlatformAdminLogin(BaseModel):
     email: EmailStr
     password: str
 
-
 class PlatformAdminToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
-
 
 # ---------- Signup requests (Phase 2.5) ----------
 
@@ -117,7 +135,6 @@ class SignupCreate(BaseModel):
     # Honeypot field — must always arrive empty from real users (Phase 2.5, Day 2)
     website: Optional[str] = None
 
-
 class SignupResponse(BaseModel):
     id: int
     school_name: str
@@ -133,6 +150,16 @@ class SignupResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class SignupReject(BaseModel):
     rejection_reason: str
+
+class SignupApprove(BaseModel):
+    tenant_id: str
+    raw_connection_string: str
+
+    @field_validator("tenant_id")
+    @classmethod
+    def tenant_id_must_be_slug(cls, v: str) -> str:
+        if not v or not v.replace("_", "").replace("-", "").isalnum():
+            raise ValueError("tenant_id must be alphanumeric (with optional _ or -)")
+        return v.lower()

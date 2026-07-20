@@ -14,7 +14,7 @@ from sqlmodel import Session, select
 from control_plane.crypto import encrypt_connection_string
 from control_plane.models import Tenant, TenantStatus, TenantFeatureFlag
 from control_plane.tenant_lookup import invalidate_tenant_cache
-from schemas.control_plane_schemas import TenantCreate, TenantSubscriptionUpdate
+from schemas.control_plane_schemas import TenantCreate, TenantSubscriptionUpdate, TenantUpdate
 from utils.logging import logger
 
 
@@ -60,6 +60,91 @@ def create_tenant(session: Session, payload: TenantCreate) -> Tenant:
     session.refresh(tenant)
     logger.info(f"Created tenant '{tenant.tenant_id}' (status=provisioning)")
     return tenant
+
+
+def update_tenant(session: Session, tenant_id: str, payload: TenantUpdate) -> Tenant:
+    """Phase 5 — generic info edit, including optional connection-string
+    rotation. Only fields actually present in the payload are touched;
+    everything else on the row is left as-is.
+    """
+    tenant = get_tenant_by_id(session, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Unknown tenant")
+
+    updates = payload.model_dump(exclude_unset=True, exclude_none=True)
+
+    rotated_connection = "raw_connection_string" in updates
+    if rotated_connection:
+        raw = updates.pop("raw_connection_string")
+        tenant.db_connection_secret = encrypt_connection_string(raw)
+
+    for field, value in updates.items():
+        setattr(tenant, field, value)
+
+    tenant.updated_at = datetime.utcnow()
+    session.add(tenant)
+    session.commit()
+    session.refresh(tenant)
+
+    if rotated_connection:
+        # Critical: the old connection string is cached (in this service's
+        # own cache, and separately in mzbs's mirrored cache) — without
+        # invalidating here, a rotated credential wouldn't take effect
+        # until the cache TTL naturally expires, same class of gap as the
+        # suspend-status caching behavior already observed in testing.
+        invalidate_tenant_cache(tenant_id)
+        logger.info(f"Tenant '{tenant_id}' connection string rotated; cache invalidated")
+
+    logger.info(f"Tenant '{tenant_id}' info updated: {list(updates.keys())}")
+    return tenant
+
+
+def delete_tenant(session: Session, tenant_id: str) -> None:
+    """Permanently remove a tenant row from the control plane.
+
+    Only tenants already 'suspended' or 'expired' can be deleted, never
+    'active' or 'provisioning'. This is a safety rail against deleting a
+    live school by mistake — a tenant must be taken out of service first,
+    as its own separate, confirmable step, before it can be deleted.
+
+    Note: this only removes the control-plane row (this tenant's entry
+    in the directory). It does NOT touch the tenant's actual Neon
+    database — that keeps existing, now orphaned from the control plane,
+    and must be cleaned up separately (e.g. deleting the Neon project)
+    if that's actually wanted.
+    """
+    tenant = get_tenant_by_id(session, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Unknown tenant")
+
+    if tenant.status not in (TenantStatus.SUSPENDED, TenantStatus.EXPIRED):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Tenant must be 'suspended' or 'expired' before it can be deleted "
+                f"(currently '{tenant.status}')."
+            ),
+        )
+
+    try:
+        # Clear dependent feature-flag rows first to avoid an FK violation.
+        # Use a direct SQL delete to be robust against any ORM state issues
+        # (e.g., flags that were partially deleted by a previous failed attempt).
+        from sqlalchemy import delete as sql_delete
+
+        stmt = sql_delete(TenantFeatureFlag).where(TenantFeatureFlag.tenant_id == tenant.id)
+        session.execute(stmt)
+
+        session.delete(tenant)
+        session.commit()
+
+        invalidate_tenant_cache(tenant_id)
+        logger.info(f"Tenant '{tenant_id}' deleted from control plane")
+
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error deleting tenant '{tenant_id}': {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
 
 
 def update_tenant_status(session: Session, tenant_id: str, new_status: TenantStatus) -> Tenant:

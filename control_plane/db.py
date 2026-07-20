@@ -1,7 +1,5 @@
-from contextlib import asynccontextmanager
 from urllib.parse import urlparse, urlunparse
 
-from fastapi import FastAPI
 from sqlmodel import SQLModel, create_engine, Session
 
 import setting
@@ -66,18 +64,11 @@ def create_db_and_tables() -> None:
     SQLModel.metadata.create_all(engine)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("Creating control-plane database connection")
-    try:
-        create_db_and_tables()
-        logger.info("Control-plane tables ready")
-    except Exception as e:
-        logger.error(f"Control-plane database initialization error: {str(e)}")
-        raise
-    yield
-    logger.info("Closing control-plane database connection")
-    await engine.dispose()
+# NOTE: app startup/shutdown lifecycle (create_db_and_tables + engine.dispose)
+# lives in main.py's `lifespan()`, which is the one actually registered with
+# FastAPI(lifespan=...). This module previously defined a second, unused
+# `lifespan()` here that duplicated that logic and was never wired up —
+# removed to avoid the two drifting out of sync silently.
 
 
 def get_control_plane_session():

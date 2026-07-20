@@ -1,0 +1,72 @@
+Repository directory tree for F:\2_PROJECTS\A_MMS\mzbs-control-panel
+========================================
+mzbs-control-panel
+├── consolidated
+│   ├── consolidated_repository_files.txt
+│   └── consolidated_repository_files_index.txt
+├── control_plane
+│   ├── __init__.py
+│   ├── crypto.py
+│   ├── db.py
+│   ├── models.py
+│   ├── platform_admin_auth.py
+│   ├── rate_limit.py
+│   ├── router.py
+│   ├── signup_service.py
+│   ├── tenant_lookup.py
+│   └── tenant_service.py
+├── migrations
+│   ├── __init__.py
+│   ├── add_control_plane_tables.py
+│   ├── create_first_platform_admin.py
+│   ├── seed_first_tenant.py
+│   └── verify_phase2_checklist.py
+├── mzbs-platform
+│   ├── src
+│   │   ├── api
+│   │   │   ├── PlatformAdminAPI.ts
+│   │   │   └── SignupAPI.ts
+│   │   ├── app
+│   │   │   ├── (admin)
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── [tenant_id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── signups
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── login
+│   │   │   │       └── page.tsx
+│   │   │   ├── (marketing)
+│   │   │   │   └── signup
+│   │   │   │       └── page.tsx
+│   │   │   ├── globals.css
+│   │   │   ├── layout.tsx
+│   │   │   └── page.tsx
+│   │   ├── components
+│   │   │   └── ProtectedPlatformRoute.tsx
+│   │   └── context
+│   │       └── PlatformAdminContext.tsx
+│   ├── .env.local
+│   ├── next-env.d.ts
+│   ├── next.config.mjs
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
+├── schemas
+│   ├── __init__.py
+│   └── control_plane_schemas.py
+├── tests
+│   └── test_consolidate_repo.py
+├── utils
+│   ├── __init__.py
+│   └── logging.py
+├── .python-version
+├── LICENSE
+├── main.py
+├── Procfile
+├── pyproject.toml
+├── README.md
+├── setting.py
+└── uv.lock

@@ -28,6 +28,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/platform-admin/login")
 
 PLATFORM_TOKEN_SCOPE = "platform_admin"
 
+# A hash of a value nobody will ever type in as a password. Used to run a
+# "dummy" bcrypt verify when the email doesn't exist, so the login endpoint
+# takes roughly the same amount of time whether or not the account is real.
+# Without this, an attacker can time responses to enumerate valid admin
+# emails (unknown email -> instant return; known email -> bcrypt verify).
+_DUMMY_HASH = _pwd_context.hash("mzbs-control-panel-dummy-timing-guard")
+
 
 def hash_password(plain_password: str) -> str:
     return _pwd_context.hash(plain_password)
@@ -50,10 +57,17 @@ def create_platform_admin_token(admin_id: int, email: str) -> str:
 
 def authenticate_platform_admin(session: Session, email: str, password: str) -> Optional[PlatformAdmin]:
     admin = session.exec(select(PlatformAdmin).where(PlatformAdmin.email == email)).first()
+
     if not admin:
+        # Run a real bcrypt verify against a dummy hash anyway, so this
+        # branch costs about the same as the "admin exists" branch below.
+        # Discard the (always-False) result — this call exists only for timing.
+        verify_password(password, _DUMMY_HASH)
         return None
+
     if not verify_password(password, admin.hashed_password):
         return None
+
     admin.last_login_at = datetime.utcnow()
     session.add(admin)
     session.commit()

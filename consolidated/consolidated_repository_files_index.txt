@@ -1,0 +1,53 @@
+Repository Consolidation Index
+=============================
+Root: F:\2_PROJECTS\A_MMS\mzbs-control-panel
+Generated: 2026-07-20 20:57:32
+Files included: 47
+
+- .python-version
+- Procfile
+- consolidated/consolidated_repository_files.txt
+- control_plane/__init__.py
+- control_plane/crypto.py
+- control_plane/db.py
+- control_plane/models.py
+- control_plane/platform_admin_auth.py
+- control_plane/rate_limit.py
+- control_plane/router.py
+- control_plane/signup_service.py
+- control_plane/tenant_lookup.py
+- control_plane/tenant_service.py
+- main.py
+- migrations/__init__.py
+- migrations/add_control_plane_tables.py
+- migrations/create_first_platform_admin.py
+- migrations/seed_first_tenant.py
+- migrations/verify_phase2_checklist.py
+- mzbs-platform/.env.local
+- mzbs-platform/next-env.d.ts
+- mzbs-platform/next.config.mjs
+- mzbs-platform/package-lock.json
+- mzbs-platform/package.json
+- mzbs-platform/postcss.config.mjs
+- mzbs-platform/src/api/PlatformAdminAPI.ts
+- mzbs-platform/src/api/SignupAPI.ts
+- mzbs-platform/src/app/(admin)/dashboard/[tenant_id]/page.tsx
+- mzbs-platform/src/app/(admin)/dashboard/page.tsx
+- mzbs-platform/src/app/(admin)/dashboard/signups/page.tsx
+- mzbs-platform/src/app/(admin)/login/page.tsx
+- mzbs-platform/src/app/(marketing)/signup/page.tsx
+- mzbs-platform/src/app/globals.css
+- mzbs-platform/src/app/layout.tsx
+- mzbs-platform/src/app/page.tsx
+- mzbs-platform/src/components/ProtectedPlatformRoute.tsx
+- mzbs-platform/src/context/PlatformAdminContext.tsx
+- mzbs-platform/tailwind.config.ts
+- mzbs-platform/tsconfig.json
+- pyproject.toml
+- schemas/__init__.py
+- schemas/control_plane_schemas.py
+- setting.py
+- tests/test_consolidate_repo.py
+- utils/__init__.py
+- utils/logging.py
+- uv.lock

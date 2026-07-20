@@ -10,7 +10,7 @@ from fastapi import Request
 import setting
 from utils.logging import logger, cleanup_old_logs
 from control_plane.db import create_db_and_tables, engine
-
+from control_plane.rate_limit import limiter
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,7 +27,6 @@ async def lifespan(app: FastAPI):
     logger.info("mzbs-control-panel shutting down...")
     await engine.dispose()
 
-
 app = FastAPI(
     title="mzbs-control-panel",
     description="Control plane: tenant directory, platform-admin auth, sign-up approval, subscriptions",
@@ -40,6 +39,8 @@ app = FastAPI(
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
+# Required for the @limiter.limit(...) decorator on the public /signup endpoint
+app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
@@ -48,7 +49,6 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         status_code=429,
         content={"detail": "Too many requests. Please try again later."},
     )
-
 
 # CORS: only the mzbs-platform frontend (marketing + admin dashboard) needs
 # to reach this service — never a school's own frontend.
@@ -63,9 +63,9 @@ app.add_middleware(
 )
 
 # Router registration
-from control_plane.router import platform_router  # noqa: E402
+from control_plane.router import platform_router, public_signup_router  # noqa: E402
 app.include_router(platform_router)
-
+app.include_router(public_signup_router)
 
 @app.get("/", tags=["mzbs-control-panel"])
 async def root():
