@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedPlatformRoute from "@/components/ProtectedPlatformRoute";
+import { DashboardNavigation } from "@/components/DashboardNavigation";
 import { usePlatformAdmin } from "@/context/PlatformAdminContext";
 import { createTenant, TenantCreatePayload } from "@/api/PlatformAdminAPI";
 import PasswordInput from "@/components/PasswordInput";
@@ -326,6 +327,7 @@ export default function CreateTenantPage() {
   return (
     <ProtectedPlatformRoute>
       <CreateTenantForm />
+      <DashboardNavigation />
     </ProtectedPlatformRoute>
   );
 }

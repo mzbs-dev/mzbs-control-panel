@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ProtectedPlatformRoute from "@/components/ProtectedPlatformRoute";
+import { DashboardNavigation } from "@/components/DashboardNavigation";
 import { usePlatformAdmin } from "@/context/PlatformAdminContext";
 import { getTenants, deleteTenant, Tenant, TenantStatus } from "@/api/PlatformAdminAPI";
 
@@ -112,7 +114,8 @@ function StatusSection({
 }
 
 function TenantsView() {
-  const { token } = usePlatformAdmin();
+  const { token, adminName, setToken } = usePlatformAdmin();
+  const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,14 +189,28 @@ function TenantsView() {
     }
   }
 
+  function handleLogout() {
+    setToken(null);
+    router.replace("/login");
+  }
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-slate">Platform admin</p>
           <h1 className="mt-2 font-display text-2xl text-ink">Schools</h1>
+          {adminName && (
+            <p className="mt-1 text-sm text-slate">Signed in as {adminName}</p>
+          )}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={handleLogout}
+            className="rounded-md border border-line px-4 py-2 text-sm text-ink transition hover:border-ink"
+          >
+            Logout
+          </button>
           <Link
             href="/dashboard/tenants/create"
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-paper transition hover:opacity-90"
@@ -278,6 +295,7 @@ export default function DashboardPage() {
   return (
     <ProtectedPlatformRoute>
       <TenantsView />
+      <DashboardNavigation />
     </ProtectedPlatformRoute>
   );
 }

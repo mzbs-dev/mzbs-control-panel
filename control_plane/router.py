@@ -55,7 +55,7 @@ def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depe
     admin = authenticate_platform_admin(session, form_data.username, form_data.password)
     if not admin:
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_platform_admin_token(admin.id, admin.email)
+    token = create_platform_admin_token(admin.id, admin.email, admin.full_name)
     return PlatformAdminToken(access_token=token)
 
 @platform_router.get("/tenants", response_model=list[TenantResponse])

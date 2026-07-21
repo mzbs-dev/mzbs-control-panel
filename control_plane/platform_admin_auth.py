@@ -44,7 +44,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return _pwd_context.verify(plain_password, hashed_password)
 
 
-def create_platform_admin_token(admin_id: int, email: str) -> str:
+def create_platform_admin_token(admin_id: int, email: str, name: str | None = None) -> str:
     expire = datetime.utcnow() + timedelta(minutes=setting.PLATFORM_ADMIN_JWT_EXPIRE_MINUTES)
     payload = {
         "sub": str(admin_id),
@@ -52,6 +52,8 @@ def create_platform_admin_token(admin_id: int, email: str) -> str:
         "scope": PLATFORM_TOKEN_SCOPE,
         "exp": expire,
     }
+    if name:
+        payload["name"] = name
     return jwt.encode(payload, setting.PLATFORM_ADMIN_JWT_SECRET, algorithm=setting.PLATFORM_ADMIN_JWT_ALGORITHM)
 
 

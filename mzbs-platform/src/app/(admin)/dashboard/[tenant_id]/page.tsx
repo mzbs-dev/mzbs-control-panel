@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ProtectedPlatformRoute from "@/components/ProtectedPlatformRoute";
+import { DashboardNavigation } from "@/components/DashboardNavigation";
 import { usePlatformAdmin } from "@/context/PlatformAdminContext";
 import {
   getTenant,
@@ -392,6 +393,7 @@ export default function TenantDetailPage() {
   return (
     <ProtectedPlatformRoute>
       <TenantDetail />
+      <DashboardNavigation />
     </ProtectedPlatformRoute>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import ProtectedPlatformRoute from "@/components/ProtectedPlatformRoute";
+import { DashboardNavigation } from "@/components/DashboardNavigation";
 import { usePlatformAdmin } from "@/context/PlatformAdminContext";
 import { getSignups, approveSignup, rejectSignup, Signup } from "@/api/PlatformAdminAPI";
 import PasswordInput from "@/components/PasswordInput";
@@ -191,6 +192,7 @@ export default function SignupsPage() {
   return (
     <ProtectedPlatformRoute>
       <SignupsQueue />
+      <DashboardNavigation />
     </ProtectedPlatformRoute>
   );
 }
