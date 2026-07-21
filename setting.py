@@ -41,6 +41,16 @@ FRONTEND_ORIGINS: list[str] = [
     if origin.strip()
 ]
 
+# --- Trusted hosts for browser/API requests ---
+TRUSTED_HOSTS: list[str] = [
+    host.strip()
+    for host in os.getenv(
+        "TRUSTED_HOSTS",
+        "localhost,127.0.0.1,[::1],bismillah-karo.netlify.app,mzbs-control-panel.fastapicloud.dev",
+    ).split(",")
+    if host.strip()
+]
+
 # --- Basic startup validation ---
 _required = {
     "CONTROL_PLANE_DATABASE_URL": CONTROL_PLANE_DATABASE_URL,

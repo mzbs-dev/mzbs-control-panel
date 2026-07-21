@@ -6,6 +6,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from fastapi import Request
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 import setting
 from utils.logging import logger, cleanup_old_logs
@@ -38,6 +39,10 @@ app = FastAPI(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=setting.TRUSTED_HOSTS,
+)
 
 # Required for the @limiter.limit(...) decorator on the public /signup endpoint
 app.state.limiter = limiter
